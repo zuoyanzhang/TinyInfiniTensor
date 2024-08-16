@@ -1,8 +1,22 @@
 #include "utils/operator_utils.h"
+#include "core/common.h"
 #include "core/runtime.h"
+#include <algorithm>
+#include <cstddef>
 
 namespace infini {
 
+/**
+ * @brief 双向广播是处理不同形状张量进行算术操作的常用技术。允许形状不同的张量通过扩展维度（在某些情况下重复元素）来让他们
+ * 有相同的形状，从而进行逐元素操作。
+ * 对齐形状：从后往前对齐两个张量的形状，如果一个张量的维度数少于另一个，则在前面用1填充较小维度的张量
+ * 检查维度兼容性：如果两个张量在某个维度上大小相等，或其中一个维度的大小为1，则在该维度上可以进行广播
+ *          如果在某个维度上大小不相等且都不为1，则广播失败
+ * 计算广播后的形状：对齐后的维度中，每个位置上的维度取两者中的较大值
+ * @param A 
+ * @param B 
+ * @return Shape 
+ */
 Shape infer_broadcast(const Shape &A, const Shape &B) {
 
     // =================================== 作业 ===================================
@@ -10,7 +24,19 @@ Shape infer_broadcast(const Shape &A, const Shape &B) {
     // REF: https://github.com/onnx/onnx/blob/main/docs/Broadcasting.md
     // =================================== 作业 ===================================
     
-    return {};
+    Shape result(std::max(A.size(), B.size()), 1);
+    for (int i = 0; i < static_cast<int>(result.size()); ++i) {
+        int A_idx{static_cast<int>(A.size()) - i - 1};
+        int B_idx{static_cast<int>(B.size()) - i - 1};
+        if (A_idx >= 0 && B_idx >= 0) {
+            result.at(result.size() - i - 1) = std::max(A.at(A_idx), B.at(B_idx));
+        } else if (A_idx >= 0) {
+            result.at(result.size() - i - 1) = A.at(A_idx);
+        } else {
+            result.at(result.size() - i - 1) = B.at(B_idx);
+        }
+    }
+    return result;
 }
 
 int get_real_axis(const int &axis, const int &rank) {

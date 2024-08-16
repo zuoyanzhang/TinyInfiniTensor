@@ -11,7 +11,7 @@ namespace infini
   class RuntimeObj;
   class BlobObj;
 
-  using Tensor = Ref<TensorObj>;
+  using Tensor = Ref<TensorObj>; // Ref智能指针，表示一个指向TensorObj类的智能指针
   using Operator = Ref<OperatorObj>;
   using Graph = Ref<GraphObj>;
   using Runtime = Ref<RuntimeObj>;
