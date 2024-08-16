@@ -112,7 +112,7 @@ namespace infini
         // 1. 去除冗余的算子（例如，两个相邻的算子都是 transpose 算子，且做的是相反的操作，可以将其全部删除）
         // 2. 合并算子（例如，矩阵乘算子中含有属性transA、transB，如果其输入存在transpose，且对最后两个维度做交换，就可以将transpose融入到矩阵乘算子的属性中去）
         // =================================== 作业 ===================================
-                if (ops.empty()) {
+        if (ops.empty()) {
             return;
         }
 
@@ -275,6 +275,18 @@ namespace infini
         // TODO：利用 allocator 给计算图分配内存
         // HINT: 获取分配好的内存指针后，可以调用 tensor 的 setDataBlob 函数给 tensor 绑定内存
         // =================================== 作业 ===================================
+        size_t size{0};
+        for (auto tensor: tensors) {
+            size += tensor->getBytes();
+        }
+
+        allocator.alloc(size);
+        size_t offset{0};
+        for (auto tensor: tensors) {
+            tensor->setDataBlob(make_ref<BlobObj>(runtime,
+                reinterpret_cast<void*>(reinterpret_cast<char*>(allocator.getPtr()) + offset)));
+            offset += tensor->getBytes();
+        }
 
         allocator.info();
     }
